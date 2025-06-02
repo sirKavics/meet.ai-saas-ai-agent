@@ -81,7 +81,7 @@ export const DashboardUserButton = () => {
             variant="outline"
             onClick={onLogout}
             >
-              <CreditCardIcon className="size-4 text-black" />
+              <LogOutIcon className="size-4 text-black" />
               Logout
             </Button>
           </DrawerFooter>
