@@ -41,14 +41,10 @@ export const AgentForm = ({
     trpc.agents.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(
-            trpc.agents.getMany.queryOptions({}),
+          trpc.agents.getMany.queryOptions({})
         );
 
-        if (initialValues?.id) {
-            await queryClient.invalidateQueries(
-                trpc.agents.getOne.queryOptions({ id: initialValues.id }),
-            );
-        }
+        // TODO: Invalidate free tier usage
         onSuccess?.();
       },
       onError: (error) => {
@@ -57,6 +53,28 @@ export const AgentForm = ({
         // TODO: Check if error is "FORBIDDEN", redirect to "/upgrade"
       },
     })
+  );
+
+  const updateAgent = useMutation(
+    trpc.agents.update.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.agents.getMany.queryOptions({})
+        );
+
+        if (initialValues?.id) {
+          await queryClient.invalidateQueries(
+            trpc.agents.getOne.queryOptions({ id: initialValues.id })
+          );
+        }
+        onSuccess?.();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+
+        // TODO: Check if error is "FORBIDDEN", redirect to "/upgrade"
+      },
+    }),
   );
 
   const form = useForm<z.infer<typeof agentsInsertSchema>>({
@@ -68,11 +86,11 @@ export const AgentForm = ({
   });
 
   const isEdit = !!initialValues?.id;
-  const isPending = createAgent.isPending;
+  const isPending = createAgent.isPending || updateAgent.isPending;
 
   const onSubmit = (values: z.infer<typeof agentsInsertSchema>) => {
     if (isEdit) {
-      console.log("TODO: updateAgent");
+      updateAgent.mutate({ ...values, id: initialValues.id });
     } else {
       createAgent.mutate(values);
     }
@@ -93,10 +111,7 @@ export const AgentForm = ({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input 
-                    {...field} 
-                    placeholder="e.g. Math tutor"
-                />
+                <Input {...field} placeholder="e.g. Math tutor" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,9 +124,9 @@ export const AgentForm = ({
             <FormItem>
               <FormLabel>Instructions</FormLabel>
               <FormControl>
-                <Textarea 
-                    {...field} 
-                    placeholder="You are a helpful math assistant that can answer questions and help with assignments." 
+                <Textarea
+                  {...field}
+                  placeholder="You are a helpful math assistant that can answer questions and help with assignments."
                 />
               </FormControl>
               <FormMessage />
@@ -119,19 +134,19 @@ export const AgentForm = ({
           )}
         />
         <div className="flex justify-between gap-x-2">
-            {onCancel && (
-                <Button
-                    variant="ghost"
-                    disabled={isPending}
-                    type="button"
-                    onClick={() => onCancel()}
-                >
-                    Cancel
-                </Button>
-            )}
-            <Button disabled={isPending} type="submit">
-                {isEdit ? "Update" : "Create"}
+          {onCancel && (
+            <Button
+              variant="ghost"
+              disabled={isPending}
+              type="button"
+              onClick={() => onCancel()}
+            >
+              Cancel
             </Button>
+          )}
+          <Button disabled={isPending} type="submit">
+            {isEdit ? "Update" : "Create"}
+          </Button>
         </div>
       </form>
     </Form>
