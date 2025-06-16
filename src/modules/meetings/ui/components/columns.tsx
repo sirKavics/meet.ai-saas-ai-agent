@@ -1,7 +1,6 @@
 "use client";
 
 import { format } from "date-fns";
-import humanizeDuration from "humanize-duration";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   CircleCheckIcon,
@@ -12,19 +11,11 @@ import {
   LoaderIcon,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { GeneratedAvatar } from "@/components/generated-avatar";
 
 import { MeetingGetMany } from "../../types";
-
-function formatDuration(seconds: number) {
-  return humanizeDuration(seconds * 1000, {
-    largest: 1,
-    round: true,
-    units: ["h", "m", "s"],
-  });
-}
 
 const statusIconMap = {
   upcoming: ClockArrowUpIcon,
@@ -77,15 +68,17 @@ export const columns: ColumnDef<MeetingGetMany[number]>[] = [
       const Icon =
         statusIconMap[row.original.status as keyof typeof statusIconMap];
       return (
-        <Badge 
+        <Badge
           variant="outline"
           className={cn(
             "capitalize [&>svg]:size-4 text-muted-foreground",
             statusColorMap[row.original.status as keyof typeof statusColorMap]
-          )}>
-          <Icon className={cn(
-            row.original.status === "processing" && "animate-spin"
-          )} 
+          )}
+        >
+          <Icon
+            className={cn(
+              row.original.status === "processing" && "animate-spin"
+            )}
           />
           {row.original.status}
         </Badge>
@@ -101,7 +94,9 @@ export const columns: ColumnDef<MeetingGetMany[number]>[] = [
         className="capitalize [&>svg]:size-4 flex items-center gap-x-2"
       >
         <ClockFadingIcon className="text-blue-700" />
-        {row.original.duration ? formatDuration(row.original.duration) : "No duration"}
+        {row.original.duration
+          ? formatDuration(row.original.duration)
+          : "No duration"}
       </Badge>
     ),
   },
